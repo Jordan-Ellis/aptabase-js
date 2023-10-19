@@ -1,12 +1,12 @@
 import { newSessionId } from './session';
 
 export type AptabaseOptions = {
+  isDebug: boolean;
   host?: string;
   appVersion?: string;
 };
 
 const locale = getBrowserLocale();
-const isDebug = getIsDebug();
 
 // Session expires after 1 hour of inactivity
 const SESSION_TIMEOUT = 1 * 60 * 60;
@@ -15,6 +15,7 @@ let _lastTouched = new Date();
 let _appKey = '';
 let _apiUrl = '';
 let _options: AptabaseOptions | undefined;
+let _isDebug = false;
 
 const _hosts: { [region: string]: string } = {
   US: 'https://us.aptabase.com',
@@ -26,6 +27,7 @@ const _hosts: { [region: string]: string } = {
 export function init(appKey: string, options?: AptabaseOptions) {
   _appKey = appKey;
   _options = options;
+  _isDebug = options?.isDebug ?? getIsDebug();
 
   const parts = appKey.split('-');
   if (parts.length !== 3 || _hosts[parts[1]] === undefined) {
@@ -66,7 +68,7 @@ export async function trackEvent(eventName: string, props?: Record<string, strin
         sessionId: _sessionId,
         eventName: eventName,
         systemProps: {
-          isDebug,
+          isDebug: _isDebug,
           locale,
           appVersion: _options?.appVersion ?? '',
           sdkVersion: globalThis.__APTABASE_SDK_VERSION__ ?? `aptabase-web@${process.env.PKG_VERSION}`,
